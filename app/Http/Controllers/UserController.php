@@ -38,7 +38,6 @@ class UserController extends Controller
     public function storeUser(Request $request)
     {
       try{
-           
         // Validations
              $rules = [
                 'name' => 'required|min:3',
@@ -63,7 +62,7 @@ class UserController extends Controller
                      $token = $user->token;
                     if($user->save()){
                       Mail::to($request->email)->send(new WelcomeMail($token));
-                      return response()->json(['status'=>'sucess','message'=>'User craeted sucessfully']);
+                      return response()->json(['status'=>'sucess','message'=>'We sent you email please check your email box and verify your email']);
                         
                     }
                     
@@ -126,8 +125,9 @@ class UserController extends Controller
             if($user->status == 1)
               {
                 // Verify the password
+                $password=Hash::make($request->password);
                 if( password_verify($request->password, $user->password) ) {
-                  $login = User::where('email',$request->email)->update(['status' =>1, 'token' => $this->apiToken, 'user_system_detail'=>$user_details]);
+                  $login = User::where('email',$request->email)->update(['token' => $this->apiToken, 'user_system_detail'=>$user_details]);
                 
                   if($login){
                     return response()->json([
@@ -154,7 +154,7 @@ class UserController extends Controller
         $user = User::where('token',$token)->first();
         
         if($user) {
-            $logout = User::where('id',$user->id)->update(['token' => null, 'status' => 0 ]);
+            $logout = User::where('id',$user->id)->update(['token' => null, ]);
         
           if($logout){
               return response()->json([
@@ -186,9 +186,9 @@ class UserController extends Controller
         
       }
 
-      public function passwordReset()
+      public function passwordReset($id)
       {
-        return view('emails.resetpassword');
+        return view('emails.resetpassword',compact('id'));
       }
 
     
@@ -196,11 +196,12 @@ class UserController extends Controller
       {
        
         $user = User::where('email',$request->email)->first();
-       
+        $id = $user->id;
+        
         if($user){
             if($user->status == 1)
               {
-                Mail::to($request->email)->send(new PasswordReset());
+                Mail::to($request->email)->send(new PasswordReset($id));
               }else{
                 return response()->json(['status'=>'unverify','message'=>'Please verify your email']);
               }  
@@ -214,8 +215,11 @@ class UserController extends Controller
     
       public function changePassword(Request $request)
       {
-       $rules = [
-          'new-password' => 'required|string|min:6|confirmed',
+       
+        $id = $request->id;
+        
+        $rules = [
+          'new_password' => 'required|string|min:6|',
           ];
         $validator = Validator::make($request->all(), $rules);
           if($validator->fails()){
@@ -223,13 +227,16 @@ class UserController extends Controller
                 return response()->json([
                 'message' => $validator->messages(),
              ]);
-
+                }
         //Change Password
-        $user = Auth::user();
-        $user->password = bcrypt($request->get('new-password'));
-        $user->save();
+        
+       $user= User::where('id',$id)->update(['password'=> Hash::make($request->new_password)]);
 
-        return response()->json(['status'=>'failed','message'=>'Password changed successfully']);
-      }
+        return response()->json(['status'=>'sucess','message'=>'Password changed successfully']);
+      
 
   }
+
+  
+ 
+}

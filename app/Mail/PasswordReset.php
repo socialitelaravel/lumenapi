@@ -10,15 +10,17 @@ use Illuminate\Queue\SerializesModels;
 class PasswordReset extends Mailable
 {
     use Queueable, SerializesModels;
+    public $id;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($id)
     {
-        //
+         
+        $this->id = $id;
     }
 
     /**
@@ -28,6 +30,6 @@ class PasswordReset extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.PasswordReset');
+        return $this->markdown('emails.password');
     }
 }

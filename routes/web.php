@@ -21,6 +21,8 @@ $router->group(['prefix'=>'api'],function() use($router){
     $router->get('verify-email/{token}', 'UserController@verifyUser');
     $router->get('updatePassword', 'UserController@updatePassword');
     $router->post('forgetPassword', 'UserController@forgetPassword');
+    $router->get('password-reset/{id}', 'UserController@passwordReset');
+    $router->post('password-change', 'UserController@changePassword');
 
     $router->group(['middleware'=>'APIToken'],function() use($router){
         $router->get('users','UserController@allUser');
